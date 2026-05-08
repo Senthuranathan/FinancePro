@@ -11,7 +11,11 @@ const budgetRoutes = require('./routes/budgetRoutes');
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: '*', // For development/demo, we'll allow all. For production, you could specify your Vercel URL here.
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 
 // Routes
