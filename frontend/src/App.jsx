@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import { Analytics } from '@vercel/analytics/react';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Transactions from './pages/Transactions';
@@ -32,6 +33,7 @@ function App() {
           <Route path="/advisor" element={user ? <Advisor /> : <Navigate to="/login" />} />
         </Routes>
       </div>
+      <Analytics />
     </Router>
   );
 }
