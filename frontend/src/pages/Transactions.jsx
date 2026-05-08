@@ -41,7 +41,7 @@ const Transactions = () => {
 
   const handleDelete = async (id) => {
     if(window.confirm('Delete transaction?')) {
-      await fetch(`http://localhost:5000/api/transactions/${id}`, {
+      await fetch(`${API_BASE_URL}/transactions/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${user.token}` }
       });

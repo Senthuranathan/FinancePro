@@ -1,10 +1,11 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import API_BASE_URL from '../config';
 
 export const fetchTransactions = createAsyncThunk('transactions/fetch', async ({ page, search, type }, thunkAPI) => {
   const state = thunkAPI.getState();
   const token = state.auth.user.token;
 
-  let url = `http://localhost:5000/api/transactions?page=${page}&limit=10`;
+  let url = `${API_BASE_URL}/transactions?page=${page}&limit=10`;
   if (search) url += `&search=${search}`;
   if (type) url += `&type=${type}`;
 
