@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { validateSession } from './store/authSlice';
-import Login from './pages/Login';
+import { validateSession, loginUser } from './store/authSlice';
 import Dashboard from './pages/Dashboard';
 import Transactions from './pages/Transactions';
 import BudgetPlanner from './pages/BudgetPlanner';
@@ -11,15 +10,18 @@ import Navbar from './components/Navbar';
 import ErrorBoundary from './components/ErrorBoundary';
 
 function App() {
-  const { user } = useSelector(state => state.auth);
+  const { user, isLoading } = useSelector(state => state.auth);
   const dispatch = useDispatch();
   const [darkMode, setDarkMode] = useState(false);
 
+  // Auto-login or validate session
   useEffect(() => {
     if (user) {
       dispatch(validateSession());
+    } else if (!isLoading) {
+      dispatch(loginUser({ email: 'demo@example.com', password: 'password123' }));
     }
-  }, [user, dispatch]);
+  }, [user, isLoading, dispatch]);
 
   useEffect(() => {
     if (darkMode) {
@@ -29,17 +31,21 @@ function App() {
     }
   }, [darkMode]);
 
+  if (!user) {
+    return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading application...</div>;
+  }
+
   return (
     <Router>
-      {user && <Navbar darkMode={darkMode} setDarkMode={setDarkMode} />}
+      <Navbar darkMode={darkMode} setDarkMode={setDarkMode} />
       <div className="container">
         <ErrorBoundary>
           <Routes>
-            <Route path="/login" element={!user ? <Login /> : <Navigate to="/" />} />
-            <Route path="/" element={user ? <Dashboard /> : <Navigate to="/login" />} />
-            <Route path="/transactions" element={user ? <Transactions /> : <Navigate to="/login" />} />
-            <Route path="/budget" element={user ? <BudgetPlanner /> : <Navigate to="/login" />} />
-            <Route path="/advisor" element={user ? <Advisor /> : <Navigate to="/login" />} />
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/transactions" element={<Transactions />} />
+            <Route path="/budget" element={<BudgetPlanner />} />
+            <Route path="/advisor" element={<Advisor />} />
+            <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </ErrorBoundary>
       </div>

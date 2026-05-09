@@ -37,9 +37,6 @@ const Navbar = ({ darkMode, setDarkMode }) => {
           >
             {darkMode ? <Sun size={20} /> : <Moon size={20} />}
           </button>
-          <button onClick={() => dispatch(logout())} className="btn" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: 'var(--danger-color)', color: 'white' }}>
-            <LogOut size={16} /> Logout
-          </button>
         </div>
       </div>
     </div>
