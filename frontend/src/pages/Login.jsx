@@ -43,6 +43,16 @@ const Login = () => {
             {isLoading ? 'Logging in...' : 'Login'}
           </button>
         </form>
+        <div style={{ marginTop: '1rem', textAlign: 'center' }}>
+          <button 
+            className="btn btn-outline" 
+            style={{ width: '100%' }}
+            onClick={() => dispatch(loginUser({ email: 'demo@example.com', password: 'password123' }))}
+            disabled={isLoading}
+          >
+            Quick Demo Login
+          </button>
+        </div>
       </div>
     </div>
   );

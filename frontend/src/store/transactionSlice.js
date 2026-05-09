@@ -1,9 +1,10 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import API_BASE_URL from '../config';
+import { logout } from './authSlice';
 
 export const fetchTransactions = createAsyncThunk('transactions/fetch', async ({ page, search, type }, thunkAPI) => {
   const state = thunkAPI.getState();
-  const token = state.auth.user.token;
+  const token = state.auth.user?.token;
 
   let url = `${API_BASE_URL}/transactions?page=${page}&limit=10`;
   if (search) url += `&search=${search}`;
@@ -12,6 +13,10 @@ export const fetchTransactions = createAsyncThunk('transactions/fetch', async ({
   const response = await fetch(url, {
     headers: { 'Authorization': `Bearer ${token}` }
   });
+  if (response.status === 401) {
+    thunkAPI.dispatch(logout());
+    return thunkAPI.rejectWithValue('Session expired');
+  }
   if (!response.ok) throw new Error('Failed to fetch transactions');
   return response.json();
 });

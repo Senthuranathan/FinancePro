@@ -17,6 +17,25 @@ export const loginUser = createAsyncThunk('auth/login', async (credentials, thun
   }
 });
 
+export const validateSession = createAsyncThunk('auth/validate', async (_, thunkAPI) => {
+  const state = thunkAPI.getState();
+  const token = state.auth.user?.token;
+  if (!token) return thunkAPI.rejectWithValue('No token');
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/budget`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (response.status === 401) {
+      thunkAPI.dispatch(logout());
+      return thunkAPI.rejectWithValue('Session expired');
+    }
+    return true;
+  } catch (error) {
+    return thunkAPI.rejectWithValue(error.message);
+  }
+});
+
 const userFromStorage = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
 
 const authSlice = createSlice({

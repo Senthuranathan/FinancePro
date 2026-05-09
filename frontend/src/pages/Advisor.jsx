@@ -1,39 +1,55 @@
 import React, { useState, useEffect } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import API_BASE_URL from '../config';
 
 const Advisor = () => {
   const { user } = useSelector(state => state.auth);
+  const dispatch = useDispatch();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!user?.token) return;
       try {
+        setLoading(true);
         // Fetch actual spending
         const catRes = await fetch(`${API_BASE_URL}/analytics/categories`, {
           headers: { 'Authorization': `Bearer ${user.token}` }
         });
+        if (catRes.status === 401) {
+          dispatch({ type: 'auth/logout' });
+          return;
+        }
+        if (!catRes.ok) throw new Error('Failed to fetch categories');
         const actualSpending = await catRes.json();
 
         // Fetch budget
         const budgetRes = await fetch(`${API_BASE_URL}/budget`, {
           headers: { 'Authorization': `Bearer ${user.token}` }
         });
+        if (!budgetRes.ok) throw new Error('Failed to fetch budget');
         const budgetData = await budgetRes.json();
 
-        setData({ actual: actualSpending, budget: budgetData });
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching advisor data', error);
+        setData({ 
+          actual: Array.isArray(actualSpending) ? actualSpending : [], 
+          budget: budgetData?.categoryBudgets ? budgetData : { monthlyIncome: 0, categoryBudgets: {} } 
+        });
+      } catch (err) {
+        console.error('Error fetching advisor data', err);
+        setError(err.message);
+      } finally {
         setLoading(false);
       }
     };
     fetchData();
-  }, [user.token]);
+  }, [user, dispatch]);
 
-  if (loading) return <div>Analyzing your finances...</div>;
+  if (loading) return <div style={{ padding: '2rem', textAlign: 'center' }}>Analyzing your finances...</div>;
+  if (error) return <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--danger-color)' }}>Error: {error}</div>;
+  if (!data) return <div style={{ padding: '2rem', textAlign: 'center' }}>No data available</div>;
 
   const { actual, budget } = data;
   const advice = [];

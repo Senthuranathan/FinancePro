@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import API_BASE_URL from '../config';
 
 const BudgetPlanner = () => {
@@ -8,20 +8,30 @@ const BudgetPlanner = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
+  const dispatch = useDispatch();
+
   useEffect(() => {
     fetchBudget();
-  }, [user.token]);
+  }, [user, dispatch]);
 
   const fetchBudget = async () => {
+    if (!user?.token) return;
     try {
+      setLoading(true);
       const res = await fetch(`${API_BASE_URL}/budget`, {
         headers: { 'Authorization': `Bearer ${user.token}` }
       });
+      if (res.status === 401) {
+        dispatch({ type: 'auth/logout' });
+        return;
+      }
+      if (!res.ok) throw new Error('Failed to fetch budget');
       const data = await res.json();
       setBudget(data);
-      setLoading(false);
     } catch (error) {
       console.error('Error fetching budget', error);
+      setBudget({ monthlyIncome: 0, categoryBudgets: {} });
+    } finally {
       setLoading(false);
     }
   };

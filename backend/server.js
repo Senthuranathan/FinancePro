@@ -40,7 +40,7 @@ const startServer = async () => {
     console.log('Database seeded with demo user and 1000 transactions');
 
     const PORT = process.env.PORT || 5000;
-    app.listen(PORT, () => {
+    app.listen(PORT, '0.0.0.0', () => {
       console.log(`Server running on port ${PORT}`);
     });
   } catch (error) {

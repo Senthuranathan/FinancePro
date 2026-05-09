@@ -1,35 +1,53 @@
 import React, { useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from 'recharts';
 import API_BASE_URL from '../config';
+import { logout } from '../store/authSlice';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658'];
 
 const Dashboard = () => {
   const { user } = useSelector(state => state.auth);
+  const dispatch = useDispatch();
   const [categories, setCategories] = useState([]);
   const [trends, setTrends] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!user?.token) return;
       try {
+        setLoading(true);
         const catRes = await fetch(`${API_BASE_URL}/analytics/categories`, {
           headers: { 'Authorization': `Bearer ${user.token}` }
         });
+        if (catRes.status === 401) {
+          dispatch(logout());
+          return;
+        }
+        if (!catRes.ok) throw new Error('Failed to fetch categories');
         const catData = await catRes.json();
-        setCategories(catData);
+        setCategories(Array.isArray(catData) ? catData : []);
 
         const trendRes = await fetch(`${API_BASE_URL}/analytics/trends`, {
           headers: { 'Authorization': `Bearer ${user.token}` }
         });
+        if (!trendRes.ok) throw new Error('Failed to fetch trends');
         const trendData = await trendRes.json();
-        setTrends(trendData);
-      } catch (error) {
-        console.error('Error fetching analytics', error);
+        setTrends(Array.isArray(trendData) ? trendData : []);
+      } catch (err) {
+        console.error('Error fetching analytics', err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
       }
     };
     fetchData();
-  }, [user.token]);
+  }, [user, dispatch]);
+
+  if (loading) return <div style={{ padding: '2rem', textAlign: 'center' }}>Loading dashboard...</div>;
+  if (error) return <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--danger-color)' }}>Error: {error}</div>;
 
   return (
     <div>
